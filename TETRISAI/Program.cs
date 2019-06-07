@@ -15,8 +15,6 @@ namespace TETRISAI
         public static void DrawMap(int[][] GameMap)
         {
 
-
-
             for (int i = 0; i < 20; i++)
             {
                 for (int j = 0; j < 10; j++)
@@ -41,55 +39,62 @@ namespace TETRISAI
                 Console.WriteLine();
             }
 
-            DrowInfo(State);
         }
 
-        static void DrowInfo(GameState State)
+        public static void DrawNextFigure(GameState State)
         {
-            Console.SetCursorPosition(30, 1);
+            Console.SetCursorPosition(25,0);
+            Console.Write("Следующая фигура: ");
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    Console.SetCursorPosition(i + 30, j+2);
+                    if (State.NextFigure.FigureShape[i][j] == 0)
+                    {
+                        
+                        Console.Write("*");
+                    }
+                    else
+                    {
+                        Console.Write("■");
+                    }
+                }
+                Console.WriteLine();
+            }
+
+        }
+
+        static void DrawInfo(GameState State)
+        {
+            Console.SetCursorPosition(21, 7);
             Console.WriteLine("ID генома " + State.ListOfGenomes[State.CurrentGenome].ID);
-            Console.SetCursorPosition(30, 2);
+            Console.SetCursorPosition(21, 8);
             Console.WriteLine("NumberOfRowsCleared " + State.ListOfGenomes[State.CurrentGenome].NumberOfRowsCleared);
-            Console.SetCursorPosition(30, 3);
+            Console.SetCursorPosition(21, 9);
             Console.WriteLine("WeightedHeight " + State.ListOfGenomes[State.CurrentGenome].WeightedHeight);
-            Console.SetCursorPosition(30, 4);
+            Console.SetCursorPosition(21, 10);
             Console.WriteLine("NumberOfMissingBlocks " + State.ListOfGenomes[State.CurrentGenome].NumberOfMissingBlocks);
-            Console.SetCursorPosition(30, 5);
+            Console.SetCursorPosition(21, 11);
             Console.WriteLine("Roughness " + State.ListOfGenomes[State.CurrentGenome].Roughness);
-            Console.SetCursorPosition(30, 6);
+            Console.SetCursorPosition(21, 12);
             Console.WriteLine("RelativeHeight " + State.ListOfGenomes[State.CurrentGenome].RelativeHeight);
-            Console.SetCursorPosition(30, 7);
+            Console.SetCursorPosition(21, 13);
 
             Console.WriteLine("Номер генома: " + State.CurrentGenome);
-            Console.SetCursorPosition(30, 8);
+            Console.SetCursorPosition(21, 14);
             Console.WriteLine("Номер понуляции: " + State.Generation);
-            Console.SetCursorPosition(30, 9);
+            Console.SetCursorPosition(21, 15);
             Console.WriteLine("Количество сделанных шагов" + State.MovesTaken);
-            Console.SetCursorPosition(30, 10);
+            Console.SetCursorPosition(21, 16);
             Console.WriteLine("Количество очков " + State.GameScore);
-            Console.SetCursorPosition(30,11);
+            Console.SetCursorPosition(21, 17);
             Console.WriteLine("Максимальное колво очков  " + maxgamescore);
 
 
         }
 
-        static void DrawInfoAboutGenomes(GameState State)
-        {
-            foreach (Genomes item in State.ListOfGenomes)
-            {
-                Console.WriteLine(item.NumberOfRowsCleared);
-                Console.WriteLine(item.WeightedHeight);
-                Console.WriteLine(item.NumberOfMissingBlocks);
-                Console.WriteLine(item.Roughness);
-                Console.WriteLine(item.RelativeHeight);
-                Console.WriteLine(item.ID);
-                Console.WriteLine(State.CurrentGenome);
-            }
-
-        }
-
-
-
+       
 
 
         static void Main(string[] args)
@@ -102,20 +107,6 @@ namespace TETRISAI
              //AI.CreateFirstPopulation(State);
             AI.LoadOptimalPopulation(State);
 
-            foreach(Genomes item in State.ListOfGenomes)
-            {
-                Console.Write(item.NumberOfRowsCleared);
-                Console.Write(item.WeightedHeight);
-                Console.Write(item.NumberOfMissingBlocks);
-                Console.Write(item.Roughness);
-                Console.Write(item.RelativeHeight);
-                Console.Write(item.ID);
-                Console.WriteLine(State.CurrentGenome);
-            }
-            Console.ReadKey();
-
-
-
             ConsoleKeyInfo key = new ConsoleKeyInfo();
             Console.CursorVisible = false;
             DrawGraphics(State);
@@ -126,14 +117,14 @@ namespace TETRISAI
                 Console.SetCursorPosition(0, 0);
                 //Console.Clear();
 
-
                 
-                if (State.GameScore > maxgamescore)
-                    maxgamescore = State.GameScore;
-
                 GameMechanics.GameEngine(State);
-
+                
                 DrawGraphics(State);
+                DrawNextFigure(State);
+                DrawInfo(State);
+                Thread.Sleep(50);
+
 
             }
 
