@@ -1,8 +1,7 @@
 ﻿using System;
 
-namespace Попыткасделатьтетрис2
-{
-
+namespace TETRISAI
+{ 
     public class Figures // Здесь мы создаем наши фигуры
     {
         Random Randomizer = new Random();
@@ -18,20 +17,24 @@ namespace Попыткасделатьтетрис2
                 _figureShape = value;
             }
         }
-
+        //Координаты фигур
         public int X;
         public int Y;
 
-        /// Here all the shapes of figures are stored for now
-        /// 
-        /// </summary>
+        //Здесь хранятся наши фигуры. В нашем случае есть перечень шести стандартных фигур, а также одна необычная - для демонстрации эффективности алгоритма
         int[][] _ShapeType_t = new int[4][] { new int[] { 0, 1, 0, 0 }, new int[] { 1, 1, 1, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
         int[][] _ShapeType_o = new int[4][] { new int[] { 1, 1, 0, 0 }, new int[] { 1, 1, 0, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
         int[][] _ShapeType_l = new int[4][] { new int[] { 1, 1, 1, 1 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
         int[][] _ShapeType_r = new int[4][] { new int[] { 1, 0, 0, 0 }, new int[] { 1, 1, 1, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
-        public Figures() //Class Constructor creates a figure based on a random value
+        int[][] _ShapeType_j = new int[4][] { new int[] { 1, 1, 1, 0 }, new int[] { 1, 0, 0, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
+        int[][] _ShapeType_z = new int[4][] { new int[] { 1, 1, 0, 0 }, new int[] { 0, 1, 1, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
+        int[][] _ShapeType_s = new int[4][] { new int[] { 0, 1, 1, 0 }, new int[] { 1, 1, 0, 0 }, new int[] { 0, 0, 0, 0 }, new int[] { 0, 0, 0, 0 } };
+        int[][] _ShapeType_w = new int[4][] { new int[] { 1, 0, 1, 0 }, new int[] { 1, 1, 1, 0 }, new int[] { 0, 1, 0, 0 }, new int[] { 0, 0, 0, 0 } };
+
+
+        public Figures() //Конструктор класса создает случайную фигуру на основе сгенерированного числа
         {
-            int Seed = Randomizer.Next(4);
+            int Seed = Randomizer.Next(8) ;
             if (Seed == 1)
             {
                 _figureShape = _ShapeType_t;
@@ -45,19 +48,39 @@ namespace Попыткасделатьтетрис2
             {
                 _figureShape = _ShapeType_l;
             }
-            else
+            else if(Seed ==4)
 
             {
                 _figureShape = _ShapeType_r;
             }
+            else if (Seed == 5)
 
-            this.X = 4;
+            {
+                _figureShape = _ShapeType_j;
+            }
+            else if (Seed == 6)
+
+            {
+                _figureShape = _ShapeType_s;
+            }
+            else if (Seed == 7)
+
+            {
+                _figureShape = _ShapeType_z;
+            }
+            else 
+
+            {
+                _figureShape = _ShapeType_w;
+            }
+
+            this.X = 5;
             this.Y = 0;
         }
 
+        //Функция, отвечающая за поворот фигуры
         public void Rotate(int TimestoRotate)
         {
-
 
             for (int t = 0; t < TimestoRotate; t++)
             {
@@ -84,8 +107,6 @@ namespace Попыткасделатьтетрис2
                     }
                 }
 
-
-
                 int[] OldFigure_2 = new int[4];
 
                 for (int i = 0; i <= 3; i++)
@@ -107,10 +128,9 @@ namespace Попыткасделатьтетрис2
                 }
             }
 
-
-
         }
 
+        //Функция, позволяющая клонировать фигуру, чтобы избежать ссылки на объект 
         public void CloneFigure(Figures FiguretoClone)
         {
             this.X = FiguretoClone.X;
@@ -126,6 +146,5 @@ namespace Попыткасделатьтетрис2
 
 
     }
-
 
 }

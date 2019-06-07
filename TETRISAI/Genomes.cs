@@ -1,44 +1,26 @@
 ﻿using System;
-namespace Попыткасделатьтетрис2
+namespace TETRISAI
+
 {
+    // Класс, экземплярами которого являются геномы - наборы чисел, влияющие на выбор алгоритмом следующего шага
     public class Genomes
     {
-        Random Randomizer = new Random();
-        //Уникальный айди
+        //Уникальный идентификатор
         public double ID;
-        //Важность отчистки рядов, которая происходит благодаря очередному игровому действию. Чем больше было отчищено - тем больше это значение
+        //Число, показывающее влияние отчистки рядов на рейтинг хода в "глазах" алгоритма. Для успешной работы должна увеличиваться
         public double NumberOfRowsCleared;
-
-        // Высота рядов, чтобы алгоритм понимал, что мы строим слишком высоко
+        // Высота рядов, чтобы алгоритм понимал, что мы строим слишком высоко. Для успешной работы должна уменьшаться
         public double WeightedHeight;
-        //Сумма всех высот 
+        //Сумма всех высот каждого ряда. Для успешной работы должна уменьшаться.
         public double CumulativeHeight;
-        // Самая большая высота - самая маленькая
+        // Разность между самой большой высотой столбика и самой маленькой. Для успешной работы должна уменьшаться
         public double RelativeHeight;
-        // Количество всех пустых клеток, которые уже никак нельзя заполнить
+        // Количество всех пустых клеток, которые уже никак нельзя заполнить, то есть над клеткой находится закрывающий ее блок.
         public double NumberOfMissingBlocks;
-        //сумма всех разниц между высотами каждой колонки ??????????????
-        public double Roughness; // Надо бы придумать название получше
-
+        //сумма всех разниц между высотами каждой колонки, показывает отличность получившейся ломанной линии от прямой
+        public double Roughness;
+        //Рейтинг данного генома
         public int GenomeRating;
-
-
-
-
-        //Создаем конструктор этого класса, который будет создавать нам случайные геномы
-
-        public Genomes(double MutationRate)
-        {
-            this.ID = Randomizer.NextDouble();
-            this.NumberOfRowsCleared = Randomizer.NextDouble() - MutationRate;
-            this.WeightedHeight = Randomizer.NextDouble() - MutationRate;
-            this.CumulativeHeight = Randomizer.NextDouble() - MutationRate;
-            this.RelativeHeight = Randomizer.NextDouble() - MutationRate;
-            this.NumberOfMissingBlocks = Randomizer.NextDouble() * MutationRate;
-            this.Roughness = Randomizer.NextDouble() - MutationRate;
-
-
-        }
 
     }
 }

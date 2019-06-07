@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Попыткасделатьтетрис2
+namespace TETRISAI
 {
+    //Класс функций, отвечающий непосредственно за игровую механику - движение фигур, коллизию, подсчет очков и так далее. 
     public class GameMechanics
     {
 
 
-        static public GameState RemoveShape(GameState State) //Tries to make a desired move given Gamefield called GameMap and a Tetris Figure 
+        static public GameState RemoveShape(GameState State) // Данный метод убирает фигуру с игрового поля. Это может быть полезно например в том случае, если нам надо подсчитать характеристики поля
         {
-
-            //Эта часть когда должна быть в методе обновления а не действия, надо перенексти
+  
             for (int i = 0; i <= 3; i++)
             {
                 for (int j = 0; j <= 3; j++)
@@ -21,11 +21,10 @@ namespace Попыткасделатьтетрис2
                     }
                 }
             }
-            // Эта часть кода закончена
-
             return State;
         }
 
+        //Данный метод поворачивает фигуру. Если поворот вызывает коллизию, то происходит отмена изменений
         public static void RotateShape(GameState State)
         {
 
@@ -41,10 +40,9 @@ namespace Попыткасделатьтетрис2
 
         }
 
-        static public void DrawShape(GameState State) //Tries to make a desired move given Gamefield called GameMap and a Tetris Figure 
+        static public void DrawShape(GameState State) // Этот метод как-бы впечатывает фигуру на игровое поле
         {
 
-            //Эта часть когда должна быть в методе обновления а не действия, надо перенексти
             for (int i = 0; i <= 3; i++)
             {
                 for (int j = 0; j <= 3; j++)
@@ -55,10 +53,10 @@ namespace Попыткасделатьтетрис2
                     }
                 }
             }
-            // Эта часть кода закончена
-
 
         }
+
+        //Метод, отвечающий за проверку коллизий
         static public bool Collision(GameState State)
         {
             for (int i = 0; i <= 3; i++)
@@ -77,13 +75,10 @@ namespace Попыткасделатьтетрис2
                 }
             }
 
-
-
-
-
             return false;
         }
 
+        //Метод, сдвигающий фигуру влево
         static public GameState MoveLeft(GameState State)
 
         {
@@ -97,7 +92,7 @@ namespace Попыткасделатьтетрис2
 
             return State;
         }
-
+        //Метод, сдвигающий фигуру вправо
         static public GameState MoveRight(GameState State)
 
         {
@@ -113,12 +108,10 @@ namespace Попыткасделатьтетрис2
         }
 
 
-
-        static public GameState MoveDown(GameState State)
+        //Метод, сдвигающий фигуру вниз. Одновременно происходит проверка на проигрыш
+        static public MovementResults MoveDown(GameState State)
         {
-            State.FigureMoved = true;
-            State.Defeat = false;
-            State.NumberOfRowsCleared = 0;
+            MovementResults MoveResults= new MovementResults();
             RemoveShape(State);
             State.CurrentFigure.Y++;
 
@@ -129,25 +122,20 @@ namespace Попыткасделатьтетрис2
                 State.CurrentFigure.Y--;
                 DrawShape(State);
                 State.GenerateNextFigure();
-                //State.CurrentFigure.CloneFigure(State.NextFigure);
-                //State.NextFigure = new Figures();
                 ClearRows(State);
-
-
-
-                //Console.WriteLine("Поражение достигнуто ли:" + State.Defeat.ToString());
 
                 if (Collision(State))
                 {
 
-                    State.Defeat = true;
+                    MoveResults.Defeat = true;
+
 
                     if (State.AiMode)
                     {
-                        //Ничего не делаем НОВОВВЕДЕНИЕ
+                        
                         State.ResetGameState();
-                        State.Defeat = true;
-                        //State.CurrentGenome++;
+                        MoveResults.Defeat = true;
+                        
                     }
 
                     else
@@ -157,78 +145,49 @@ namespace Попыткасделатьтетрис2
                 }
 
 
-                State.FigureMoved = false;
+                MoveResults.MoveMade = false;
             }
 
             DrawShape(State);
 
             State.GameScore++;
-
-            return State;
+            return MoveResults;
 
         }
 
 
-
-        public static void GameEngineNew(GameState State)
+        //Метод, инициализирующий игровую сессию
+        public static void GameEngine(GameState State)
         {
             if (State.AiMode)
             {
-
-                if (!State.FigureMoved)
+                MovementResults MoveResult = new MovementResults();
+                MoveResult = MoveDown(State);
+                
+                
+                if (!MoveResult.MoveMade)
                 {
                     //Если мы проиграли либо вышли за лимит шагов на геном надо обновить геном
-                    if (State.Defeat || State.MovesTaken > State.MovesLimit)
+                    if (MoveResult.Defeat || State.MovesTaken > State.MovesLimit)
                     {
                         State.ListOfGenomes[State.CurrentGenome].GenomeRating = State.GameScore;
+
+                        
                         //Мы сейчас начнем играть заново новым геномом, поэтому тут необходимо занулить рейтинг
                         State.GameScore = 0;
-                        AI.EvaluateNextGenomeNew(State);
+                        AI.EvaluateNextGenome(State);
 
                     }
                     //Если же мы не проиграли, то можно делать следующий шаг
                     else
                     {
-                        AI.MakeNextMoveNew(State);
+                        AI.MakeNextMove(State);
                     }
                 }
             }
         }
-        public static void GameEngine(GameState State)
-        {
-
-
-            if (State.AiMode && State.CurrentGenome != -1)
-            {
-                MoveDown(State);
-                //Если фигура не подвинулась (встала на свое место)
-                if (!State.FigureMoved)
-                {
-                    //Console.WriteLine("встала");
-
-                    {
-
-                        if (State.Defeat)
-                        {
-
-                            State.ListOfGenomes[State.CurrentGenome].GenomeRating = State.GameScore;
-                            AI.EvaluateNextGenome(State);
-                        }
-                        //Если же мы не проиграли - надо делать следующий ход
-                        else
-                        {
-                            AI.MakeNextMove(State);
-                        }
-                    }
-                }
-            }
-            // Если же мы играем сами, то нужно просто опустить фигуру вниз
-            else
-            {
-                MoveDown(State);
-            }
-        }
-
+      
+        //Метод, отчищающий заполненные ряды
         static void ClearRows(GameState State)
         {
             List<int> RowsToClear = new List<int>();
@@ -275,10 +234,6 @@ namespace Попыткасделатьтетрис2
                 State.GameScore += 3200;
             }
 
-            // Здесь должен создаваться отдельный массив типа тех рядов, что мы убрали, но я не знаю, нафиг это нужно, поэтому пока не делаю
-
-
-
             foreach (int item in RowsToClear)
             {
                 for (int j = 0; j < 10; j++)
@@ -295,12 +250,6 @@ namespace Попыткасделатьтетрис2
                     }
                 }
             }
-
-
-
-
-
-
 
             State.NumberOfRowsCleared = RowsToClear.Count;
 

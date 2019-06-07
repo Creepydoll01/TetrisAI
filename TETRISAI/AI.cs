@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System;
-namespace Попыткасделатьтетрис2
+
+namespace TETRISAI
+
 {
 
 
@@ -12,180 +14,177 @@ namespace Попыткасделатьтетрис2
         static GameState SavedState = new GameState();
         static Random Randomizer = new Random();
 
-
-        public static void CreateFirstPopulation(GameState State)
+        //Загружает оптимальный геном
+        public static void LoadOptimalPopulation(GameState State)
         {
-            for (int i = 0; i < State.SizeOfPopulation; i++)
+
+            for(int i = 0; i<State.SizeOfPopulation;i++)
             {
-                Genomes Genome = new Genomes(State.MutationRate);
+                Genomes Genome = new Genomes();
+                
+                Genome.ID = 1;
+                
+                Genome.NumberOfRowsCleared = 0.22568649650722883;
+                Genome.WeightedHeight = -0.08679520494876472;
+                Genome.CumulativeHeight = -0.6152727732730796;
+                Genome.RelativeHeight = 0.15842464424735841;
+                Genome.NumberOfMissingBlocks = -0.15452215909537684;
+                Genome.Roughness = -0.021586109522043928;
+                Genome.GenomeRating = 100000;
+
                 State.ListOfGenomes.Add(Genome);
             }
 
             EvaluateNextGenome(State);
         }
-
-        public static void CreateFirstPopulationNew(GameState State)
+        
+        public static void CreateFirstPopulation(GameState State)
         {
             //Мы заполняем нашу популяцию первоначальными геномами, генерируя их в конструкторе
             for (int i = 0; i < State.SizeOfPopulation; i++)
             {
-                Genomes Genome = new Genomes(State.MutationRate);
+                Genomes Genome = new Genomes();
+                Genome.ID = Randomizer.NextDouble();
+                Genome.NumberOfRowsCleared = Randomizer.NextDouble() - State.MutationRate;
+                Genome.WeightedHeight = Randomizer.NextDouble() - State.MutationRate;
+                Genome.CumulativeHeight = Randomizer.NextDouble() - State.MutationRate;
+                Genome.RelativeHeight = Randomizer.NextDouble() - State.MutationRate;
+                Genome.NumberOfMissingBlocks = Randomizer.NextDouble() * State.MutationRate;
+                Genome.Roughness = Randomizer.NextDouble() - State.MutationRate;
+ 
                 State.ListOfGenomes.Add(Genome);
             }
+
             //Оцениваем первый геном
-            EvaluateNextGenomeNew(State);
+            EvaluateNextGenome(State);
         }
-        public static void EvaluateNextGenome(GameState State) // Придумать название получше
+        
+
+        public static void EvaluateNextGenome(GameState State)
         {
-
-            State.CurrentGenome++;
-            //Если вдруг геномов не осталось, то эволюционируем
-            if (State.CurrentGenome == State.ListOfGenomes.Count)
-            {
-
-                Evolve(State);
-            }
-
-
-            //здесь у него реализована загрузка нынешнего игрового состояния, но мне это вроде не нужно пока
-            State.MovesTaken = 0;
-            MakeNextMove(State);
-
-        }
-
-        public static void EvaluateNextGenomeNew(GameState State)
-        {
-            //Переходим к след геному
+            //Переходим к следующему геному
             State.CurrentGenome++;
             //Проверяем, остались ли геномы в популяции. Если не остались - нужно эволюционировать
+
             if (State.CurrentGenome == State.ListOfGenomes.Count)
             {
-                EvolveNew(State);
+                Evlove(State);
             }
-            //Тут у него реализована загрузка состояния - не знаю, зачем
+
             //Поскольку мы перешли к новому геному, необходимо обнулить число сделанных шагов и сделать следующий шаг
             State.MovesTaken = 0;
-            MakeNextMoveNew(State);
+            MakeNextMove(State);
         }
 
-        static void Evolve(GameState State)
+
+        public static void Evlove(GameState State)
         {
+            // Мы прошли все геномы - пора возвращаться к нулевому значению.
+
             State.CurrentGenome = 0;
             State.Generation++;
-            //Возвращаемся к первоначальному состоянию
             State.ResetGameState();
 
-            foreach (Genomes item in State.ListOfGenomes)
-            {
-                Console.WriteLine(item.GenomeRating);
-            }
-            // Console.ReadKey();
-            //Отсортируем наш список геномов по убыванию рейтинга
-            State.ListOfGenomes.OrderByDescending(x => x.GenomeRating);
+            GameState StateOfRound = new GameState();
+            StateOfRound.SaveGameState(State);
+            //Сортируем наши геномы по убыванию рейтинга
+            State.ListOfGenomes=State.ListOfGenomes.OrderByDescending(x => x.GenomeRating).ToList();
 
-            foreach (Genomes item in State.ListOfGenomes)
-            {
-                Console.WriteLine(item.GenomeRating);
-            }
-            // Console.ReadLine();
+            //Добавим самый хороший геном в список кандидатов на скрещивание
+            
 
+            //Удалим половину самых плохих геномов
 
-            //Добавим самый лучший геном в список лучших кандидатов на скрещивание
-
-
-            State.BestCandidates.Add(State.ListOfGenomes[0]);
-
-            //Console.WriteLine("Best candidate is" + State.ListOfGenomes[0].GenomeRating);
-            // Console.ReadKey();
-            //Уберем половину самых плохих геномов из списка
-
-            while (State.ListOfGenomes.Count > (State.SizeOfPopulation / 2))
+            while(State.ListOfGenomes.Count>State.SizeOfPopulation/2)
             {
                 State.ListOfGenomes.RemoveAt(State.ListOfGenomes.Count - 1);
             }
 
-            //Посчитаем сумму рейтинга всех оставшихся геномов
-            int TotalRating = 0;
-            foreach (Genomes item in State.ListOfGenomes)
+            int TotalGenomeRating = 0;
+
+            //Считаем сумму всех хороших геномов
+            for(int i = 0; i<State.ListOfGenomes.Count;i++)
             {
-                TotalRating += item.GenomeRating;
+                TotalGenomeRating = State.ListOfGenomes[i].GenomeRating;
             }
-            //Создаем список геномов новго поколения и добавим туда самый хороший геном из этого
+
+            //Создаем список дочерних геномов
+
             List<Genomes> Children = new List<Genomes>();
-            Children.Add(State.ListOfGenomes[0]);
 
-            //Заполним список оставшимися геномами, создав их скрещиванием
-            while (Children.Count < State.SizeOfPopulation)
+            Children.Add(State.ListOfGenomes[0]);
+            while(Children.Count< State.SizeOfPopulation)
             {
-                Genomes Parent_1 = PickRandomGenome(State);
-                Genomes Parent_2 = PickRandomGenome(State);
-                Children.Add(MakeChild(Parent_1, Parent_2, State.MutationRate, State.MutationStep));
+                Children.Add(MakeChild(PickRandomGenome(State), PickRandomGenome(State), State));
             }
 
-            //Обьявляем новое поколение детей нашими геномами
             State.ListOfGenomes = new List<Genomes>();
-            foreach (Genomes item in Children)
+
+            foreach(Genomes item in Children)
             {
                 State.ListOfGenomes.Add(item);
             }
 
 
-
-
         }
-
-        private static Genomes MakeChild(Genomes Parent_1, Genomes Parent_2, double MutationRate, double MutationStep)
+           
+        
+            //Скрещиваем два старых генома для создания нового
+        private static Genomes MakeChild(Genomes Parent1, Genomes Parent2, GameState State)
         {
 
+            //Создаем новый экземпляр класса Genomes, заполняем его значениями, зависящими от родительских геномов
+            Genomes Child = new Genomes();
 
-            Genomes Child = new Genomes(MutationRate);
-
-            //Выбираем для нашего ребенка случайные параметры от каждого родителя
-            Child.NumberOfRowsCleared = GetRandomParent(Parent_1, Parent_2).NumberOfRowsCleared;
-            Child.WeightedHeight = GetRandomParent(Parent_1, Parent_2).WeightedHeight;
-            Child.CumulativeHeight = GetRandomParent(Parent_1, Parent_2).CumulativeHeight;
-            Child.RelativeHeight = GetRandomParent(Parent_1, Parent_2).RelativeHeight;
-            Child.NumberOfMissingBlocks = GetRandomParent(Parent_1, Parent_2).NumberOfMissingBlocks;
-            Child.Roughness = GetRandomParent(Parent_1, Parent_2).Roughness;
+            Child.ID = Randomizer.NextDouble();
+            Child.NumberOfRowsCleared = GetRandomParent(Parent1, Parent2).NumberOfRowsCleared;
+            Child.WeightedHeight = GetRandomParent(Parent1, Parent2).WeightedHeight;
+            Child.CumulativeHeight = GetRandomParent(Parent1, Parent2).CumulativeHeight;
+            Child.RelativeHeight = GetRandomParent(Parent1, Parent2).RelativeHeight;
+            Child.NumberOfMissingBlocks = GetRandomParent(Parent1, Parent2).NumberOfMissingBlocks;
+            Child.Roughness = GetRandomParent(Parent1, Parent2).Roughness;
             Child.GenomeRating = -1;
 
-            // Теперь начинаем мутировать нашего ребенка :)
 
-            if (Randomizer.NextDouble() < MutationRate)
+
+            if (Randomizer.NextDouble() < State.MutationRate)
             {
-                Child.WeightedHeight += Randomizer.NextDouble() * MutationStep * 2 - MutationStep;
+                Child.WeightedHeight += Randomizer.NextDouble() * State.MutationStep * 2 - State.MutationStep;
             }
 
-            if (Randomizer.NextDouble() < MutationRate)
+            if (Randomizer.NextDouble() < State.MutationRate)
             {
-                Child.CumulativeHeight += Randomizer.NextDouble() * MutationStep * 2 - MutationStep;
+                Child.CumulativeHeight += Randomizer.NextDouble() * State.MutationStep * 2 - State.MutationStep;
             }
 
-            if (Randomizer.NextDouble() < MutationRate)
+            if (Randomizer.NextDouble() < State.MutationRate)
             {
-                Child.RelativeHeight += Randomizer.NextDouble() * MutationStep * 2 - MutationStep;
+                Child.RelativeHeight += Randomizer.NextDouble() * State.MutationStep * 2 - State.MutationStep;
             }
 
-            if (Randomizer.NextDouble() < MutationRate)
+            if (Randomizer.NextDouble() < State.MutationRate)
             {
-                Child.NumberOfMissingBlocks += Randomizer.NextDouble() * MutationStep * 2 - MutationStep;
+                Child.NumberOfMissingBlocks += Randomizer.NextDouble() * State.MutationStep * 2 - State.MutationStep;
             }
 
-            if (Randomizer.NextDouble() < MutationRate)
+            if (Randomizer.NextDouble() < State.MutationRate)
             {
-                Child.NumberOfRowsCleared += Randomizer.NextDouble() * MutationStep * 2 - MutationStep;
+                Child.NumberOfRowsCleared += Randomizer.NextDouble() * State.MutationStep * 2 - State.MutationStep;
             }
 
-            if (Randomizer.NextDouble() < MutationRate)
+            if (Randomizer.NextDouble() < State.MutationRate)
             {
-                Child.Roughness += Randomizer.NextDouble() * MutationStep * 2 - MutationStep;
+                Child.Roughness += Randomizer.NextDouble() * State.MutationStep * 2 - State.MutationStep;
             }
+
 
             return Child;
 
         }
+        
 
-        private static Genomes GetRandomParent(Genomes Parent_1, Genomes Parent_2)
+        //Возвращает случайный родительский геном, один из двух
+        public static Genomes GetRandomParent(Genomes Parent_1, Genomes Parent_2)
         {
             if (Randomizer.NextDouble() > 0.5)
             {
@@ -198,45 +197,49 @@ namespace Попыткасделатьтетрис2
             }
         }
 
-        static Genomes PickRandomGenome(GameState State)
+        //Возвращает случайный геном, один из массива 
+       public static Genomes PickRandomGenome(GameState State)
         {
 
             return State.ListOfGenomes[Randomizer.Next(State.ListOfGenomes.Count - 1)];
         }
-        static public void MakeNextMoveNew(GameState State)
+
+        //Функция, которая выбирает и совершает следующий игровой шаг
+        static public void MakeNextMove(GameState State)
         {
+            
             //Увеличим количество сделанных шагов
             State.MovesTaken++;
             //Сохраним наше состояние, чтобы можно было безбоязненно определить список возможных шагов
-            SavedState.SaveGameStateNew(State);
+            SavedState.SaveGameState(State);
             List<Moves> ListOfMoves = new List<Moves>();
 
             //Смотрим, какие шаги мы можем сделать с нынешней фигурой
-            ListOfMoves = GetAllPossibleMovesNew(State);
-            //Теперь перейдем к следующей фигуре, чтобы понять, какой из нынешних ходов привет к наиболее оптимальному результату при учете, что и следующим ходом будет наиболее оптимальный
-            State.GenerateNextFigureNew();
+             ListOfMoves = GetAllPossibleMoves(State);
+            //Теперь перейдем к следующей фигуре, чтобы понять, какой из нынешних ходов приведет к наиболее оптимальному результату при учете, что и следующим ходом будет наиболее оптимальный
+            State.GenerateNextFigure();
 
             for (int i = 0; i < ListOfMoves.Count; i++)
             {
                 Moves NextMove = new Moves();
-                NextMove = CalculateHighestRatedMoveNew(GetAllPossibleMovesNew(State));
+               NextMove = CalculateHighestRatedMoveNew(GetAllPossibleMoves(State));
                 ListOfMoves[i].Rating += NextMove.Rating;
             }
-            //Теперь найдем самый выгодный мув из всех возможных
+            //Теперь найдем самый выгодный ход из всех возможных
             Moves MoveToMake = new Moves();
             MoveToMake = CalculateHighestRatedMoveNew(ListOfMoves);
 
-            //Самый выгодный мув найден. Теперь можно загрузить первоначальное состояние и сделать наконец этот мув
+            //Самый выгодный ход найден. Теперь можно загрузить первоначальное состояние и сделать наконец этот ход
 
-            State.LoadGameStateNew(SavedState);
+           State.LoadGameState(SavedState);
 
-            //Выполняем мув. ВРОДЕ РАБОТАЕТ КАК И ДОЛЖНО
+            //Выполняем выбранный ход
 
             for (int Rotations = 0; Rotations < MoveToMake.NumberOfRotations; Rotations++)
             {
                 GameMechanics.RotateShape(State);
             }
-            // двигаем влево
+            // Двигаем влево
             if (MoveToMake.Shift < 0)
             {
                 for (int Left = 0; Left < Math.Abs(MoveToMake.Shift); Left++)
@@ -252,180 +255,121 @@ namespace Попыткасделатьтетрис2
                     GameMechanics.MoveRight(State);
                 }
             }
-        }
-        static public void MakeNextMove(GameState State)
-        {
-
-            State.MovesTaken++;
-            //Смотрим, а не привысили ли мы лимит количество действий. Если превысили - надо выбирать новый геном
-            if (State.MovesTaken > State.MovesLimit)
-            {
-                State.ListOfGenomes[State.CurrentGenome].GenomeRating = State.GameScore;
-
-                EvaluateNextGenome(State);
-
-            }
-
-            else
-            {
-                //Нужно сделать ход
-
-                List<Moves> ListOfMoves = GetAllPossibleMoves(State);
-
-                //удалить
-                //foreach(Moves item in ListOfMoves)
-                //{
-                //  Console.WriteLine(item.Shift);
-                //}
-                //Console.ReadKey();
-                //
-
-                GameState SavedState = new GameState();
-                SavedState.SaveGameState(State);
-
-                //Для каждого возможного шага с нынешней фигурой посчитаем все возможные шаги с будущей фигурой и выберем наиболее оптимальный
-                State.GenerateNextFigure();
-
-
-
-                for (int i = 0; i < ListOfMoves.Count; i++)
-                {
-                    Moves Nextmove = CalculateHighestRatedMove(GetAllPossibleMoves(State));
-                    ListOfMoves[i].Rating += Nextmove.Rating;
-                }
-
-                // Найдя наиболее выгодный ход, мы можем его совершить. Для этого загрузим предыдущее состояние
-
-                State.LoadGameState(SavedState);
-
-                Moves MoveToMake = CalculateHighestRatedMove(ListOfMoves);
-
-                for (int Rotations = 0; Rotations < MoveToMake.NumberOfRotations; Rotations++)
-                {
-                    GameMechanics.RotateShape(State);
-                }
-                // двигаем влево
-                if (MoveToMake.Shift < 0)
-                {
-                    for (int Left = 0; Left < Math.Abs(MoveToMake.Shift); Left++)
-                    {
-                        GameMechanics.MoveLeft(State);
-                    }
-                }
-                // Двигаем вправо
-                else if (MoveToMake.Shift > 0)
-                {
-                    for (int Right = 0; Right < MoveToMake.Shift; Right++)
-                    {
-                        GameMechanics.MoveRight(State);
-                    }
-                }
-
-
-
-
-            }
 
         }
+       
 
+        //Функция создает список всех возможных ходов
         public static List<Moves> GetAllPossibleMoves(GameState State)
         {
-            //Прежде чем смотреть на варианты разивития событий, сохраним нынешнее состояние игры
+            
+            //Перед выполнением всех процедур нужно сохранить игровое состояние. Далее все действия будем выполнять с ним
 
             GameState SavedState = new GameState();
             SavedState.SaveGameState(State);
 
-            List<Moves> PossibleMoves = new List<Moves>();
-            List<double> MovesRatings = new List<double>();
-            int NumberOfIterations = 0;
-            // Проверяем каждый возможный поворот фигуры
-            for (int Rotations = 0; Rotations < 4; Rotations++)
+            //Создаем списки движений и соответствующих им рейтингов
+
+            List<Moves> ListOfPossibleMoves = new List<Moves>();
+            List<double> PossibleMoveRatings = new List<double>();
+
+            //Для каждого возможного количества вращений...
+            for(int Rotations = 0; Rotations<4;Rotations++)
             {
-                List<int> PreviousX = new List<int>();
-                // Проверяем каждую итерацию (что это?)
-                for (int t = -5; t <= 5; t++)
-                {
-                    NumberOfIterations++;
+                List<int> OldX = new List<int>();
 
-                    //осуществляем вращение
-                    for (int i = 0; i < Rotations; i++)
+                    for(int x = -5; x<=5;x++)
+                     {
+                           //Загружаем сохраненное состояние
+                           State.LoadGameState(SavedState);
+                            
+                            //Вращаем
+                            for(int j = 0; j<Rotations;j++)
+                              {
+                                    GameMechanics.RotateShape(State);
+                              }
+
+                            //Двигаем влево
+                             if(x<0)
+                             {        
+                                for(int l = 0; l<Math.Abs(x);l++)
+                                 {
+                                      GameMechanics.MoveLeft(State);
+                                   }
+                             }
+                             //Или вправо
+                             else if(x>0)
+                            {
+                               for(int r = 0; r<x;r++)
+                                {
+                                     GameMechanics.MoveRight(State);
+                                }
+                            }
+
+                    //Если фигура двигалась, то надо еще подвинуть, пока перестанет двигаться (встанет на свое место)
+
+                    if (!OldX.Contains(State.CurrentFigure.X))
                     {
-                        GameMechanics.RotateShape(State);
-                    }
+                        MovementResults MoveResult = new MovementResults();
 
-                    //Move Left
+                        MoveResult = GameMechanics.MoveDown(State);
 
-                    if (t < 0)
-                    {
-                        int Abs_t = Math.Abs(t);
-                        for (var left = 0; left < Abs_t; left++)
+                        while (MoveResult.MoveMade)
                         {
-                            GameMechanics.MoveLeft(State);
-                        }
-                    }
-
-                    //Move Right
-
-                    if (t > 0)
-                    {
-
-                        for (var right = 0; right < t; right++)
-                        {
-                            GameMechanics.MoveRight(State);
-                        }
-                    }
-
-                    //если фигура вообще двигалась 
-                    if (!PreviousX.Contains(State.CurrentFigure.X))
-                    {
-                        //Двигаем вниз
-                        GameMechanics.MoveDown(State);
-                        while (State.FigureMoved)
-                        {
-                            GameMechanics.MoveDown(State);
+                            MoveResult = GameMechanics.MoveDown(State);
                         }
 
-                        Moves Move = new Moves(State);
-                        Move.NumberOfRotations = Rotations;
-                        Move.Shift = t;
+                        // Создаем новый экземпляр класса Move - наш новый ход
 
-                        Move.Algorithm.NumberOfRowsCleared = State.NumberOfRowsCleared;
-                        Move.Algorithm.WeightedHeight = Math.Pow(CalculateHeight(State), 1.5);
-                        Move.Algorithm.CumulativeHeight = CalculateCumulativeHeight(State);
-                        Move.Algorithm.RelativeHeight = CalculateRelativeHeight(State);
-                        Move.Algorithm.NumberOfMissingBlocks = CountMissingBlocks(State);
-                        Move.Algorithm.Roughness = CalculateRoughness(State);
+                        Moves Move = new Moves();
+                        //Заполняем его значения
+                        Move.NumberOfRowsCleared = MoveResult.RowsCleared;
+                        Move.WeightedHeight = Math.Pow(CalculateHeight(State), 1.5);
+                        Move.CumulativeHeight = CalculateCumulativeHeight(State);
+                        Move.RelativeHeight = CalculateRelativeHeight(State);
+                        Move.NumberOfMissingBlocks = CountMissingBlocks(State);
+                        Move.Roughness = CalculateRoughness(State);
 
-                        Move.Rating += Move.Algorithm.NumberOfRowsCleared * State.ListOfGenomes[State.CurrentGenome].NumberOfRowsCleared;
-                        Move.Rating += Move.Algorithm.WeightedHeight * State.ListOfGenomes[State.CurrentGenome].WeightedHeight;
-                        Move.Rating += Move.Algorithm.CumulativeHeight * State.ListOfGenomes[State.CurrentGenome].CumulativeHeight;
-                        Move.Rating += Move.Algorithm.RelativeHeight * State.ListOfGenomes[State.CurrentGenome].RelativeHeight;
-                        Move.Rating += Move.Algorithm.NumberOfMissingBlocks * State.ListOfGenomes[State.CurrentGenome].NumberOfMissingBlocks;
-                        Move.Rating += Move.Algorithm.Roughness * State.ListOfGenomes[State.CurrentGenome].Roughness;
+                        
+                        //Производим оценку
 
-                        if (State.Defeat)
+                        Move.Rating += Move.NumberOfRowsCleared * State.ListOfGenomes[State.CurrentGenome].NumberOfRowsCleared;
+                        Move.Rating += Move.WeightedHeight * State.ListOfGenomes[State.CurrentGenome].WeightedHeight;
+                        Move.Rating += Move.CumulativeHeight * State.ListOfGenomes[State.CurrentGenome].CumulativeHeight;
+                        Move.Rating += Move.RelativeHeight * State.ListOfGenomes[State.CurrentGenome].RelativeHeight;
+                        Move.Rating += Move.NumberOfMissingBlocks * State.ListOfGenomes[State.CurrentGenome].NumberOfMissingBlocks;
+                        Move.Rating += Move.Roughness * State.ListOfGenomes[State.CurrentGenome].Roughness;
+
+                        //Если шаг проиграл игру, то он очень плохой. Уменьшаем его рейтинг. 
+                        if (MoveResult.Defeat)
                         {
                             Move.Rating -= 500;
                         }
 
-                        PossibleMoves.Add(Move);
-                        PreviousX.Add(State.CurrentFigure.X);
+                        Move.NumberOfRotations = Rotations;
+                        Move.Shift = x;
 
+                        ListOfPossibleMoves.Add(Move);
+                   
+                        OldX.Add(State.CurrentFigure.X);
 
                     }
+
                 }
+
             }
 
-            //Мы рассмотрели все варианты развития событий. Теперь загрузим ранее сохраненное состояние
-
-            State.LoadGameState(SavedState);
-
-            return PossibleMoves;
-
-        }
+                   //Загружаем сохраненное состояние и возвращаем список шагов
+                 State.LoadGameState(SavedState);         
+                 return ListOfPossibleMoves;
+            }
 
 
-        // Далее идут вспомогательные функции, использующиеся в методе GetAllPossibleMoves
+
+
+        
+
+        // Далее идут вспомогательные функции, использующиеся в методе GetAllPossibleMoves. Они нужны для расчетов рейтинга шага
         private static int CalculateCumulativeHeight(GameState State)
         {
             GameMechanics.RemoveShape(State);
@@ -452,6 +396,7 @@ namespace Попыткасделатьтетрис2
 
             return TotalHeight;
         }
+
         private static int CountMissingBlocks(GameState State)
         {
             GameMechanics.RemoveShape(State);
@@ -485,11 +430,6 @@ namespace Попыткасделатьтетрис2
             GameMechanics.DrawShape(State);
             return AmountOfHoles;
 
-
-
-
-
-
         }
 
         private static double CalculateRoughness(GameState State)
@@ -511,8 +451,6 @@ namespace Попыткасделатьтетрис2
 
             double Roughness = 0;
 
-
-
             for (int i = 0; i < MaxHeights.GetLength(0) - 1; i++)
             {
                 Roughness += Math.Abs(MaxHeights[i] - MaxHeights[i + 1]);
@@ -521,7 +459,6 @@ namespace Попыткасделатьтетрис2
             GameMechanics.DrawShape(State);
 
             return Roughness;
-
 
         }
 
@@ -566,8 +503,7 @@ namespace Попыткасделатьтетрис2
             return (20 - MaxHeights.Min());
 
         }
-
-        public static Moves CalculateHighestRatedMove(List<Moves> ListOfMoves) // Сильно переписал эту функцию, так что надо быть аккуратным
+        public static Moves CalculateHighestRatedMove(List<Moves> ListOfMoves) 
         {
             double HighestRating = -1000000000;
 
@@ -587,6 +523,23 @@ namespace Попыткасделатьтетрис2
 
         }
 
+        public static Moves CalculateHighestRatedMoveNew(List<Moves> ListOfMoves)
+        {
+            double HighestRating = -1000000000;
+
+            int BestMoveID = 0;
+
+            foreach (Moves Move in ListOfMoves)
+            {
+                if (Move.Rating > HighestRating)
+                {
+                    HighestRating = Move.Rating;
+                    BestMoveID = ListOfMoves.IndexOf(Move);
+
+                }
+            }
+            return ListOfMoves[BestMoveID];
+        }
 
     }
 }

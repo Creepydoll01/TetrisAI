@@ -48,6 +48,7 @@
     <Compile Include="GameMechanics.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="Genomes.cs" />
+    <Compile Include="MovementResults.cs" />
     <Compile Include="Moves.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
