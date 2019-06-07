@@ -25,11 +25,11 @@ namespace TETRISAI
                 Genome.ID = 1;
                 
                 Genome.NumberOfRowsCleared = 0.22568649650722883;
-                Genome.WeightedHeight = -0.08679520494876472;
-                Genome.CumulativeHeight = -0.6152727732730796;
+                Genome.WeightedHeight = 0.08679520494876472;
+                Genome.CumulativeHeight = 0.6152727732730796;
                 Genome.RelativeHeight = 0.15842464424735841;
-                Genome.NumberOfMissingBlocks = -0.15452215909537684;
-                Genome.Roughness = -0.021586109522043928;
+                Genome.NumberOfMissingBlocks = 0.15452215909537684;
+                Genome.Roughness = 0.021586109522043928;
                 Genome.GenomeRating = 100000;
 
                 State.ListOfGenomes.Add(Genome);
@@ -334,11 +334,11 @@ namespace TETRISAI
                         //Производим оценку
 
                         Move.Rating += Move.NumberOfRowsCleared * State.ListOfGenomes[State.CurrentGenome].NumberOfRowsCleared;
-                        Move.Rating += Move.WeightedHeight * State.ListOfGenomes[State.CurrentGenome].WeightedHeight;
-                        Move.Rating += Move.CumulativeHeight * State.ListOfGenomes[State.CurrentGenome].CumulativeHeight;
-                        Move.Rating += Move.RelativeHeight * State.ListOfGenomes[State.CurrentGenome].RelativeHeight;
-                        Move.Rating += Move.NumberOfMissingBlocks * State.ListOfGenomes[State.CurrentGenome].NumberOfMissingBlocks;
-                        Move.Rating += Move.Roughness * State.ListOfGenomes[State.CurrentGenome].Roughness;
+                        Move.Rating -= Move.WeightedHeight * State.ListOfGenomes[State.CurrentGenome].WeightedHeight;
+                        Move.Rating -= Move.CumulativeHeight * State.ListOfGenomes[State.CurrentGenome].CumulativeHeight;
+                        Move.Rating -= Move.RelativeHeight * State.ListOfGenomes[State.CurrentGenome].RelativeHeight;
+                        Move.Rating -= Move.NumberOfMissingBlocks * State.ListOfGenomes[State.CurrentGenome].NumberOfMissingBlocks;
+                        Move.Rating -= Move.Roughness * State.ListOfGenomes[State.CurrentGenome].Roughness;
 
                         //Если шаг проиграл игру, то он очень плохой. Уменьшаем его рейтинг. 
                         if (MoveResult.Defeat)
