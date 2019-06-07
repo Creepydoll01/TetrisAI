@@ -67,7 +67,9 @@ namespace TETRISAI
                     {
 
 
-                        if (State.CurrentFigure.Y + i > 19 || State.CurrentFigure.Y + i < 0 || State.CurrentFigure.X + j > 9 || State.CurrentFigure.X + j < 0 || State.GameMap[State.CurrentFigure.Y + i][State.CurrentFigure.X + j] != 0)
+                        if (State.CurrentFigure.Y + i > 19 || State.CurrentFigure.Y + i < 0 ||
+                            State.CurrentFigure.X + j > 9 || State.CurrentFigure.X + j < 0 ||
+                            State.GameMap[State.CurrentFigure.Y + i][State.CurrentFigure.X + j] != 0)
                         {
                             return true;
                         }

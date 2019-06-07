@@ -20,6 +20,7 @@ namespace TETRISAI
         public List<Genomes> ListOfGenomes = new List<Genomes>();
         public int MovesLimit = 500;
         int AmountOfMoves = 0;
+
         //Наше игровое поле. Используется массив массивов, потому что так быстрее 
         public int[][] GameMap = new int[][]
         {
