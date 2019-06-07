@@ -91,6 +91,7 @@ namespace TETRISAI
             Console.CursorVisible = false;
            if(Console.ReadKey().Key==ConsoleKey.Enter)
             {
+                Console.Clear();
                 AI.LoadOptimalPopulation(State);
 
                 while(true)
@@ -100,6 +101,7 @@ namespace TETRISAI
                     DrawGraphics(State);
                     DrawNextFigure(State);
                     DrawInfo(State);
+                    Thread.Sleep(50);
 
                 }
 
@@ -107,6 +109,7 @@ namespace TETRISAI
 
             else if (Console.ReadKey().Key == ConsoleKey.Backspace)
             {
+                Console.Clear();
                 AI.CreateFirstPopulation(State);
 
                 while (true)
@@ -116,7 +119,7 @@ namespace TETRISAI
                     DrawGraphics(State);
                     DrawNextFigure(State);
                     DrawInfo(State);
-
+                    Thread.Sleep(50);
                 }
 
             }

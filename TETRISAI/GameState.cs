@@ -9,7 +9,7 @@ namespace TETRISAI
         ///геном
         /// </summary>
         public bool AiMode = true;
-        public int SizeOfPopulation = 5;
+        public int SizeOfPopulation = 30;
         public int NumberOfRowsCleared = 0;
         public int CurrentGenome = 0;
         public int Generation = 1;
